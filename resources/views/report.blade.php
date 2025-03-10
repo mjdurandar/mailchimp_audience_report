@@ -81,14 +81,18 @@
                         // Get headers dynamically from the first subscriber
                         let headers = Object.keys(data[0]);
 
+                        // Add a new header for the number column
+                        tableHeaders.innerHTML += `<th class="border px-4 py-2">#</th>`;
+
                         // Populate table headers
                         headers.forEach(header => {
                             tableHeaders.innerHTML += `<th class="border px-4 py-2">${header.replace('_', ' ').toUpperCase()}</th>`;
                         });
 
                         // Populate table data
-                        data.forEach(subscriber => {
+                        data.forEach((subscriber, index) => {
                             let row = '<tr>';
+                            row += `<td class="border px-4 py-2">${index + 1}</td>`; // Add the number column
                             headers.forEach(header => {
                                 row += `<td class="border px-4 py-2">${subscriber[header] || ''}</td>`;
                             });
