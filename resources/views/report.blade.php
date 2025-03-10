@@ -112,78 +112,73 @@
                 .catch(error => console.error('Error fetching subscribers:', error));
         });
 
-        // CSV Export Function
+        // ✅ CSV Export Function (Including Tags Logic)
         document.getElementById('generateCSV').addEventListener('click', function() {
-        let jsonData = JSON.parse(this.dataset.data);
-        let headers = Object.keys(jsonData[0]);
-        
-        // Add "Tags" column to headers
-        headers.push("Tags");
-        
-        let csvRows = [];
-        csvRows.push(headers.join(',')); // Add headers to CSV
-
-        jsonData.forEach(row => {
-            console.log(row);
-            let values = headers.map(header => {
-                if (header === "Tags") {
-                    let tags = [];
-                    
-                    // Check if audience is WAFT
-                    let audienceName = document.getElementById('audience').selectedOptions[0].text;
-                    if (audienceName === "WAFT USA 2025 (WIN AUDIENCE)") {
-                        tags.push("2025", "INT - ALL", "FILM TOUR - WAFT");
-                        
-                        // Country condition
-                        if (!row.address || /US|USA/i.test(row.address)) {
-                            tags.push("COUNTRY - USA");
-                        } else {
-                            tags.push("COUNTRY - CANADA");
-                        }
-
-                        // Extract city from event location
-                         if (row.location) {
-                            let city = row.location.split(/,| - /)[0].trim().toUpperCase();
-                            tags.push(`SHOW - ${city}`);
-                            tags.push(`SOURCE - WAFT ${city} COMP 2025`);
-                        }
-                    } 
-                    else if (audienceName === 'F3T USA 2025 (WIN AUDIENCE)') {
-                        tags.push("2025", "INT - FLY FISHING", "FILM TOUR - FLY FISHING");
-                        
-                        // Country condition
-                        if (!row.address || /US|USA/i.test(row.address)) {
-                            tags.push("COUNTRY - USA");
-                        } else {
-                            tags.push("COUNTRY - CANADA");
-                        }
-
-                        // Extract city from event location
-                         if (row.location) {
-                            let city = row.location.split(/,| - /)[0].trim().toUpperCase();
-                            tags.push(`SHOW - ${city}`);
-                            tags.push(`SOURCE - F3T ${city} COMP 2025`);
-                        }
-                    }
-
-                    return `"${tags.join(', ')}"`;
-                }
+                let jsonData = JSON.parse(this.dataset.data);
+                let headers = Object.keys(jsonData[0]);
                 
-                return `"${row[header] || ''}"`;
+                // Add "Tags" column to headers
+                headers.push("Tags");
+                
+                let csvRows = [];
+                csvRows.push(headers.join(',')); // Add headers to CSV
+
+                jsonData.forEach(row => {
+                    let values = headers.map(header => {
+                        if (header === "Tags") {
+                            let tags = [];
+                            let audienceName = document.getElementById('audience').selectedOptions[0].text;
+
+                            if (audienceName === "WAFT USA 2025 (WIN AUDIENCE)") {
+                                tags.push("2025", "INT - ALL", "FILM TOUR - WAFT");
+                                
+                                if (!row.address || /US|USA/i.test(row.address)) {
+                                    tags.push("COUNTRY - USA");
+                                } else {
+                                    tags.push("COUNTRY - CANADA");
+                                }
+
+                                if (row.location) {
+                                    let city = row.location.split(/,| - /)[0].trim().toUpperCase();
+                                    tags.push(`SHOW - ${city}`);
+                                    tags.push(`SOURCE - WAFT ${city} COMP 2025`);
+                                }
+                            } 
+                            else if (audienceName === 'F3T USA 2025 (WIN AUDIENCE)') {
+                                tags.push("2025", "INT - FLY FISHING", "FILM TOUR - FLY FISHING");
+                                
+                                if (!row.address || /US|USA/i.test(row.address)) {
+                                    tags.push("COUNTRY - USA");
+                                } else {
+                                    tags.push("COUNTRY - CANADA");
+                                }
+
+                                if (row.location) {
+                                    let city = row.location.split(/,| - /)[0].trim().toUpperCase();
+                                    tags.push(`SHOW - ${city}`);
+                                    tags.push(`SOURCE - F3T ${city} COMP 2025`);
+                                }
+                            }
+
+                            return `"${tags.join(', ')}"`;
+                        }
+                        
+                        return `"${row[header] || ''}"`;
+                    });
+
+                    csvRows.push(values.join(','));
+                });
+
+                // ✅ Export CSV with UTF-16LE Encoding (Fixes Excel Issues)
+                let csvContent = "\uFEFF" + csvRows.join("\r\n");
+                let blob = new Blob([csvContent], { type: "text/csv;charset=utf-16le" });
+                let link = document.createElement("a");
+                link.href = URL.createObjectURL(blob);
+                link.download = "subscribers.csv";
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
             });
-
-            csvRows.push(values.join(','));
-        });
-
-        // Create CSV file
-        let csvContent = "data:text/csv;charset=utf-8," + csvRows.join("\n");
-        let encodedUri = encodeURI(csvContent);
-        let link = document.createElement("a");
-        link.setAttribute("href", encodedUri);
-        link.setAttribute("download", "subscribers.csv");
-        document.body.appendChild(link);
-        link.click();
-    });
 
     </script>
 </x-app-layout>
